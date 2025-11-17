@@ -1,198 +1,250 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Викторина — Tison Cat Ai</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tison Cat Ai — Quiz WebApp</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --bg1: #080012;
-    --bg2: #0c0220;
-    --neon1: #00eaff;
-    --neon2: #ff00cc;
-    --accent: #7cff6b;
+    --bg1:#05000c;
+    --bg2:#0b0130;
+    --neon1:#00eaff;
+    --neon2:#ff00cc;
+    --accent:#7cff6b;
   }
 
   html,body{
-    height:100%;margin:0;
-    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    margin:0;padding:0;
+    height:100%;
     font-family:'Orbitron',sans-serif;
-  }
-
-  .frame{
-    width:100%;max-width:420px;
-    margin:20px auto;
-    aspect-ratio: 9 / 16;
-    border-radius:18px;
+    background:var(--bg1);
     overflow:hidden;
-    position:relative;
-    background:rgba(255,255,255,0.02);
-    border:1px solid rgba(255,255,255,0.04);
-    box-shadow:0 0 20px rgba(0,255,255,0.08) inset;
   }
 
-  .neon-bg{
+  .app{
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+    height:100%;
+    aspect-ratio:9/16;
+    position:relative;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  .neon-grid{
     position:absolute;inset:0;pointer-events:none;
     background:
-      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px),
+      linear-gradient(180deg,rgba(255,255,255,0.05) 1px,transparent 1px);
     background-size:70px 70px;
     opacity:0.05;
   }
 
   header{
-    padding:18px;text-align:center;
+    padding:22px 10px 10px;
     color:var(--neon1);
-    font-size:1.1rem;
-    text-shadow:0 0 14px var(--neon1);
+    font-size:1.2rem;
+    text-align:center;
+    text-shadow:0 0 12px var(--neon1);
   }
 
-  main.card{
+  main{
     position:absolute;
-    left:12px;right:12px;top:86px;bottom:86px;
-    background:rgba(255,255,255,0.02);
+    left:14px;right:14px;
+    top:80px;bottom:70px;
+    background:rgba(255,255,255,0.03);
     border-radius:14px;
+    backdrop-filter:blur(4px);
     padding:16px;
     display:flex;flex-direction:column;
-    backdrop-filter:blur(4px);
-    border:1px solid rgba(255,255,255,0.03);
   }
 
   .question{
     color:#fff;
     font-size:1.05rem;
+    line-height:1.4;
+    margin-bottom:20px;
   }
-  .options{margin-top:auto;display:flex;flex-direction:column;gap:12px;}
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:auto;
+  }
+
   .btn{
-    background:rgba(255,255,255,0.03);
-    border:1px solid rgba(255,255,255,0.05);
-    padding:14px;border-radius:10px;
-    color:#e5ffff;font-weight:700;
-    cursor:pointer;transition:.12s;
+    padding:14px;
+    color:#e7ffff;
+    background:rgba(255,255,255,0.05);
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.06);
+    cursor:pointer;
+    font-weight:700;
+    transition:.15s;
   }
-  .btn:hover{box-shadow:0 0 20px rgba(0,255,255,0.1);}
+
   .btn.correct{
-    outline:2px solid rgba(124,255,107,0.4);
-    box-shadow:0 0 18px rgba(124,255,107,0.4);
+    outline:2px solid rgba(124,255,107,0.5);
+    box-shadow:0 0 15px rgba(124,255,107,0.5);
   }
+
   .btn.wrong{
-    outline:2px solid rgba(255,0,128,0.4);
-    box-shadow:0 0 18px rgba(255,0,128,0.4);
+    outline:2px solid rgba(255,0,128,0.5);
+    box-shadow:0 0 15px rgba(255,0,128,0.5);
   }
 
   footer{
-    position:absolute;left:12px;right:12px;bottom:14px;
-    display:flex;justify-content:space-between;
+    position:absolute;left:14px;right:14px;bottom:14px;
+    display:flex;justify-content:space-between;align-items:center;
     color:#cfffff;font-size:0.85rem;
   }
+
   .progress{
-    flex:1;height:8px;border-radius:6px;
-    background:rgba(255,255,255,0.06);margin-right:12px;overflow:hidden;
+    flex:1;
+    background:rgba(255,255,255,0.05);
+    height:8px;border-radius:6px;
+    margin-right:12px;overflow:hidden;
   }
   .progress i{
-    display:block;height:100%;width:0%;
+    display:block;height:100%;
     background:linear-gradient(90deg,var(--neon1),var(--neon2));
-    transition:width .4s;
+    width:0%;transition:.4s;
   }
 
   .result{
-    display:none;flex-direction:column;gap:10px;
-    text-align:center;margin:auto;
+    display:none;margin:auto;text-align:center;
+    flex-direction:column;gap:12px;
   }
-  .result h2{color:var(--neon2);text-shadow:0 0 14px var(--neon2);}
-  .result .small{color:#e8ffff;}
+  .result h2{
+    color:var(--neon2);
+    text-shadow:0 0 12px var(--neon2);
+  }
 </style>
 </head>
 
 <body>
-<div class="frame">
-  <div class="neon-bg"></div>
+<div class="app">
+  <div class="neon-grid"></div>
 
-  <header>Tison Cat Ai — Викторина</header>
+  <header>Викторина Tison Cat Ai</header>
 
-  <main class="card" id="card">
-    <div id="quizArea">
+  <main id="main">
+    <div id="quiz">
       <div class="question" id="question">Загрузка...</div>
       <div class="options" id="options"></div>
     </div>
 
     <div class="result" id="result">
-      <h2 id="resultTitle"></h2>
-      <div class="small" id="resultText"></div>
-      <button class="btn" id="restart">Ещё раз</button>
+      <h2 id="resTitle"></h2>
+      <p id="resText" style="color:#e1ffff;"></p>
     </div>
   </main>
 
   <footer>
     <div class="progress"><i id="progressBar"></i></div>
-    <div id="score">0 / 20</div>
+    <div id="scoreTxt">0 / 30</div>
   </footer>
 </div>
 
 <script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+// 30 новых вопросов
 const questions = [
-  {q:"Кто является главным персонажем канала?",a:["Кот Тайсон","Рыжий пёс","Белка"],correct:0},
-  {q:"Какой стиль визуала чаще всего подходит к каналу?",a:["Неоновый киберстиль","Минимализм","Реализм"],correct:0},
-  {q:"Что означает «Ai» в названии?",a:["Искусственный интеллект","Анимация","Алюминий"],correct:0},
-  {q:"Канал больше всего связан с…",a:["Креативным AI-контентом","Кулинарией","Политикой"],correct:0},
-  {q:"Кто по сути «хозяин» канала?",a:["Автор-админ","Пёс Барни","Программист из Дубая"],correct:0},
-  {q:"Что логично увидеть на канале?",a:["AI-арт с котами","Автомобильные обзоры","Юридические сводки"],correct:0},
-  {q:"Какой жанр контента подойдёт к каналу?",a:["Юмор + нейросети","Новости экономики","Репортажи"],correct:0},
-  {q:"Как можно описать атмосферу канала?",a:["Весёлая и творческая","Строгая деловая","Пляжная"],correct:0},
-  {q:"Что чаще всего используют для создания изображений кота?",a:["Нейросети","Фотоаппарат","Рисование акварелью"],correct:0},
-  {q:"Какой формат публикаций подходит?",a:["Короткие AI-мини-истории","Длинные статьи","Научные отчёты"],correct:0},
-  {q:"Что лучше всего описывает Тайсона?",a:["Цифровой кот с характером","Грозный лев","Водоплавающий зверь"],correct:0},
-  {q:"Что мог бы делать Тайсон в AI-мире?",a:["Хакать игрушечные лазеры","Строить дома","Летать на дроне без пропеллеров"],correct:0},
-  {q:"Какой цвет чаще всего ассоциируется с неоном?",a:["Бирюзово-фиолетовый","Коричневый","Серый"],correct:0},
-  {q:"Какой тип юмора подходит каналу?",a:["Мемный / лёгкий","Саркастичный про политику","Сухой юридический"],correct:0},
-  {q:"Что может быть фишкой контента?",a:["AI-образ кота в разных стилях","Конспекты лекций","Справочники по растениям"],correct:0},
-  {q:"Какой вайб лучше подходит каналу?",a:["Игровой cyber-cat","Суровый индустриальный","Морской приключенческий"],correct:0},
-  {q:"Как можно назвать аудиторию канала?",a:["Любители котов и AI","Коллекционеры марок","Фанаты балета"],correct:0},
-  {q:"Чем можно разнообразить посты?",a:["AI-анимацией","Сканами документов","Снимками погоды"],correct:0},
-  {q:"Какой формат обновлений подходит?",a:["Короткие частые посты","Редкие годовые отчёты","Еженедельные книжные главы"],correct:0},
-  {q:"Какую эмоцию вызывает образ Тайсона?",a:["Улыбку","Страх","Злость"],correct:0}
+  { q:"Какой маскот централизует атмосферу канала?", a:["Кот Тайсон","Киберпингвин","Пес Арчи"], correct:0 },
+  { q:"Какой визуальный стиль ближе к атмосфере канала?", a:["Неоновый киберстиль","Мультяшный стимпанк","Винтаж ретро"], correct:0 },
+  { q:"Что чаще всего публикуется на канале?", a:["AI-изображения","Кулинарные рецепты","Финансовые графики"], correct:0 },
+  { q:"Какой образ Тайсона лучше отражает тематику?", a:["Киберкот","Домашний дворовый","Пират"], correct:0 },
+  { q:"Что подходит под настроение канала?", a:["Юмор + неон","Деловые сводки","Медицинские обзоры"], correct:0 },
+  { q:"Что чаще всего используется для генераций?", a:["Нейросети","Масляные краски","Линованная тетрадь"], correct:0 },
+  { q:"Какой вайб ассоциируется с Тайсоном?", a:["Киберпанк","Средневековье","Авангард"], correct:0 },
+  { q:"Какой тип мемов подходит каналу?", a:["Про AI и котов","Политические","Математические"], correct:0 },
+  { q:"Какой формат контента подходит?", a:["Короткие посты","Часовые лонгриды","Академические статьи"], correct:0 },
+  { q:"Какой цвет чаще встречается в дизайне?", a:["Бирюзовый","Серый","Коричневый"], correct:0 },
+  { q:"Что Тайсон мог бы делать в цифровом мире?", a:["Лазерить код","Сажать картошку","Дуть на микрофон"], correct:0 },
+  { q:"Что лучше всего описывает стиль канала?", a:["Футуристичный","Ретро","Готический"], correct:0 },
+  { q:"Что главное в образе Тайсона?", a:["Кибер-харизма","Хвост","Лапы"], correct:0 },
+  { q:"Что дополняет контент?", a:["AI-анимации","Списки покупок","Скан паспорта"], correct:0 },
+  { q:"Кого можно встретить в постах?", a:["Цифрового кота","Овцу","Голубя"], correct:0 },
+  { q:"Какой тип юмора преобладает?", a:["Легкий и мемный","Официальный","Саркастичный политический"], correct:0 },
+  { q:"Какой идеальный фон для поста?", a:["Неоновый город","Сарай","Пляж"], correct:0 },
+  { q:"Что мог бы носить Тайсон?", a:["Киберочки","Шапку-ушанку","Панаму"], correct:0 },
+  { q:"Какой символ канала?", a:["Кот в стиле AI","Дерево","Фигура человека"], correct:0 },
+  { q:"Какой основной фокус канала?", a:["AI-креатив","История","Спорт"], correct:0 },
+  { q:"Что ценят зрители канала?", a:["Уникальные AI образы","Данные налоговой","Статистику торгов"], correct:0 },
+  { q:"Какой формат идеально подходит?", a:["Короткие визуальные вставки","Рефераты","Отчёты"], correct:0 },
+  { q:"Кто такой Тайсон?", a:["Цифровой кот","Хомяк","Рыба"], correct:0 },
+  { q:"Какой антураж ему подходит?", a:["Киберпанк","Фэнтези","Средневековье"], correct:0 },
+  { q:"Что усиливает атмосферу?", a:["Неон","Дерево","Грунт"], correct:0 },
+  { q:"Что мог бы делать Тайсон в будущем?", a:["Взламывать лазеры","Писать пером","Рыбачить"], correct:0 },
+  { q:"Какой основной цветовой тон?", a:["Холодный","Тёплый","Пастельный"], correct:0 },
+  { q:"Что идеально подходит для оформления?", a:["Глитч-эффекты","Цветочки","Смайлики"], correct:0 },
+  { q:"Какой темп подачи?", a:["Быстрый и динамичный","Медленный","Монотонный"], correct:0 },
+  { q:"Какую эмоцию вызывает Тайсон?", a:["Улыбку","Холод","Злость"], correct:0 }
 ];
 
 let current=0, score=0;
 
-const qEl=document.getElementById('question');
-const optEl=document.getElementById('options');
-const scoreEl=document.getElementById('score');
-const pb=document.getElementById('progressBar');
-const qr=document.getElementById('quizArea');
-const rs=document.getElementById('result');
-const rt=document.getElementById('resultTitle');
-const rtxt=document.getElementById('resultText');
+const qEl = document.getElementById("question");
+const optEl = document.getElementById("options");
+const scoreTxt = document.getElementById("scoreTxt");
+const pb = document.getElementById("progressBar");
+const res = document.getElementById("result");
+const quiz = document.getElementById("quiz");
+const resTitle = document.getElementById("resTitle");
+const resText = document.getElementById("resText");
+
+// Перемешивание массива
+function shuffle(array){
+  return array.sort(()=>Math.random()-0.5);
+}
 
 function render(){
-  const item=questions[current];
-  qEl.textContent = `Вопрос ${current+1}. ${item.q}`;
-  optEl.innerHTML="";
-  item.a.forEach((text,i)=>{
+  const item = questions[current];
+
+  const answers = item.a.map((t,i)=>({text:t,i}));
+  const shuffled = shuffle([...answers]);
+
+  qEl.innerHTML = `Вопрос ${current+1}. ${item.q}`;
+
+  optEl.innerHTML = "";
+  shuffled.forEach(ans=>{
     const b=document.createElement("button");
-    b.className="btn"; b.textContent=text; b.dataset.idx=i;
-    b.onclick=choose;
+    b.className="btn";
+    b.textContent=ans.text;
+    b.dataset.correct = (ans.i === item.correct ? "1" : "0");
+    b.onclick = choose;
     optEl.appendChild(b);
   });
-  pb.style.width = (current/questions.length*100)+"%";
-  scoreEl.textContent = `${score} / ${questions.length}`;
+
+  pb.style.width = (current / questions.length * 100) + "%";
+  scoreTxt.textContent = `${score} / ${questions.length}`;
 }
 
 function choose(e){
-  const idx=+e.target.dataset.idx;
-  const correct=questions[current].correct;
-  Array.from(optEl.children).forEach(b=>b.onclick=null);
+  const isCorrect = e.target.dataset.correct === "1";
+  const buttons = [...optEl.children];
 
-  if(idx===correct){ e.target.classList.add("correct"); score++; }
-  else{
-    e.target.classList.add("wrong");
-    optEl.children[correct].classList.add("correct");
-  }
+  buttons.forEach(b=>{
+    b.onclick = null;
+    if(b.dataset.correct==="1") b.classList.add("correct");
+  });
 
-  scoreEl.textContent = `${score} / ${questions.length}`;
+  if(!isCorrect) e.target.classList.add("wrong");
+  else score++;
+
+  scoreTxt.textContent = `${score} / ${questions.length}`;
+
   setTimeout(()=>{
     current++;
     if(current>=questions.length) finish();
@@ -201,25 +253,31 @@ function choose(e){
 }
 
 function finish(){
-  qr.style.display="none";
-  rs.style.display="flex";
-  rt.textContent=`Результат: ${score} из ${questions.length}`;
-  rtxt.textContent =
-    score===20 ? "Идеально!" :
-    score>=15 ? "Отличный результат!" :
-    score>=10 ? "Хорошо — можно ещё улучшить!" :
-    "Кот Тайсон ждёт, что ты вернёшься 😉";
-  pb.style.width="100%";
-}
+  quiz.style.display="none";
+  res.style.display="flex";
 
-document.getElementById('restart').onclick=()=>{
-  current=0; score=0;
-  rs.style.display="none";
-  qr.style.display="block";
-  render();
-};
+  resTitle.textContent = `Результат: ${score} из ${questions.length}`;
+  resText.textContent =
+    score===30 ? "Совершенно идеальный результат!" :
+    score>=20 ? "Отличная работа!" :
+    score>=10 ? "Неплохо! Можно лучше!" :
+    "Тайсон предлагает попробовать ещё 😼";
+
+  pb.style.width="100%";
+
+  tg.MainButton.setText("Пройти снова");
+  tg.MainButton.show();
+  tg.MainButton.onClick(()=>{
+    current=0; score=0;
+    res.style.display="none";
+    quiz.style.display="block";
+    tg.MainButton.hide();
+    render();
+  });
+}
 
 render();
 </script>
+
 </body>
 </html>
