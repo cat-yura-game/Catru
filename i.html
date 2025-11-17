@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Викторина — Tison Cat Ai</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg1: #080012;
+    --bg2: #0c0220;
+    --neon1: #00eaff;
+    --neon2: #ff00cc;
+    --accent: #7cff6b;
+  }
+
+  html,body{
+    height:100%;margin:0;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    font-family:'Orbitron',sans-serif;
+  }
+
+  .frame{
+    width:100%;max-width:420px;
+    margin:20px auto;
+    aspect-ratio: 9 / 16;
+    border-radius:18px;
+    overflow:hidden;
+    position:relative;
+    background:rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow:0 0 20px rgba(0,255,255,0.08) inset;
+  }
+
+  .neon-bg{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size:70px 70px;
+    opacity:0.05;
+  }
+
+  header{
+    padding:18px;text-align:center;
+    color:var(--neon1);
+    font-size:1.1rem;
+    text-shadow:0 0 14px var(--neon1);
+  }
+
+  main.card{
+    position:absolute;
+    left:12px;right:12px;top:86px;bottom:86px;
+    background:rgba(255,255,255,0.02);
+    border-radius:14px;
+    padding:16px;
+    display:flex;flex-direction:column;
+    backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  .question{
+    color:#fff;
+    font-size:1.05rem;
+  }
+  .options{margin-top:auto;display:flex;flex-direction:column;gap:12px;}
+  .btn{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.05);
+    padding:14px;border-radius:10px;
+    color:#e5ffff;font-weight:700;
+    cursor:pointer;transition:.12s;
+  }
+  .btn:hover{box-shadow:0 0 20px rgba(0,255,255,0.1);}
+  .btn.correct{
+    outline:2px solid rgba(124,255,107,0.4);
+    box-shadow:0 0 18px rgba(124,255,107,0.4);
+  }
+  .btn.wrong{
+    outline:2px solid rgba(255,0,128,0.4);
+    box-shadow:0 0 18px rgba(255,0,128,0.4);
+  }
+
+  footer{
+    position:absolute;left:12px;right:12px;bottom:14px;
+    display:flex;justify-content:space-between;
+    color:#cfffff;font-size:0.85rem;
+  }
+  .progress{
+    flex:1;height:8px;border-radius:6px;
+    background:rgba(255,255,255,0.06);margin-right:12px;overflow:hidden;
+  }
+  .progress i{
+    display:block;height:100%;width:0%;
+    background:linear-gradient(90deg,var(--neon1),var(--neon2));
+    transition:width .4s;
+  }
+
+  .result{
+    display:none;flex-direction:column;gap:10px;
+    text-align:center;margin:auto;
+  }
+  .result h2{color:var(--neon2);text-shadow:0 0 14px var(--neon2);}
+  .result .small{color:#e8ffff;}
+</style>
+</head>
+
+<body>
+<div class="frame">
+  <div class="neon-bg"></div>
+
+  <header>Tison Cat Ai — Викторина</header>
+
+  <main class="card" id="card">
+    <div id="quizArea">
+      <div class="question" id="question">Загрузка...</div>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="result" id="result">
+      <h2 id="resultTitle"></h2>
+      <div class="small" id="resultText"></div>
+      <button class="btn" id="restart">Ещё раз</button>
+    </div>
+  </main>
+
+  <footer>
+    <div class="progress"><i id="progressBar"></i></div>
+    <div id="score">0 / 20</div>
+  </footer>
+</div>
+
+<script>
+const questions = [
+  {q:"Кто является главным персонажем канала?",a:["Кот Тайсон","Рыжий пёс","Белка"],correct:0},
+  {q:"Какой стиль визуала чаще всего подходит к каналу?",a:["Неоновый киберстиль","Минимализм","Реализм"],correct:0},
+  {q:"Что означает «Ai» в названии?",a:["Искусственный интеллект","Анимация","Алюминий"],correct:0},
+  {q:"Канал больше всего связан с…",a:["Креативным AI-контентом","Кулинарией","Политикой"],correct:0},
+  {q:"Кто по сути «хозяин» канала?",a:["Автор-админ","Пёс Барни","Программист из Дубая"],correct:0},
+  {q:"Что логично увидеть на канале?",a:["AI-арт с котами","Автомобильные обзоры","Юридические сводки"],correct:0},
+  {q:"Какой жанр контента подойдёт к каналу?",a:["Юмор + нейросети","Новости экономики","Репортажи"],correct:0},
+  {q:"Как можно описать атмосферу канала?",a:["Весёлая и творческая","Строгая деловая","Пляжная"],correct:0},
+  {q:"Что чаще всего используют для создания изображений кота?",a:["Нейросети","Фотоаппарат","Рисование акварелью"],correct:0},
+  {q:"Какой формат публикаций подходит?",a:["Короткие AI-мини-истории","Длинные статьи","Научные отчёты"],correct:0},
+  {q:"Что лучше всего описывает Тайсона?",a:["Цифровой кот с характером","Грозный лев","Водоплавающий зверь"],correct:0},
+  {q:"Что мог бы делать Тайсон в AI-мире?",a:["Хакать игрушечные лазеры","Строить дома","Летать на дроне без пропеллеров"],correct:0},
+  {q:"Какой цвет чаще всего ассоциируется с неоном?",a:["Бирюзово-фиолетовый","Коричневый","Серый"],correct:0},
+  {q:"Какой тип юмора подходит каналу?",a:["Мемный / лёгкий","Саркастичный про политику","Сухой юридический"],correct:0},
+  {q:"Что может быть фишкой контента?",a:["AI-образ кота в разных стилях","Конспекты лекций","Справочники по растениям"],correct:0},
+  {q:"Какой вайб лучше подходит каналу?",a:["Игровой cyber-cat","Суровый индустриальный","Морской приключенческий"],correct:0},
+  {q:"Как можно назвать аудиторию канала?",a:["Любители котов и AI","Коллекционеры марок","Фанаты балета"],correct:0},
+  {q:"Чем можно разнообразить посты?",a:["AI-анимацией","Сканами документов","Снимками погоды"],correct:0},
+  {q:"Какой формат обновлений подходит?",a:["Короткие частые посты","Редкие годовые отчёты","Еженедельные книжные главы"],correct:0},
+  {q:"Какую эмоцию вызывает образ Тайсона?",a:["Улыбку","Страх","Злость"],correct:0}
+];
+
+let current=0, score=0;
+
+const qEl=document.getElementById('question');
+const optEl=document.getElementById('options');
+const scoreEl=document.getElementById('score');
+const pb=document.getElementById('progressBar');
+const qr=document.getElementById('quizArea');
+const rs=document.getElementById('result');
+const rt=document.getElementById('resultTitle');
+const rtxt=document.getElementById('resultText');
+
+function render(){
+  const item=questions[current];
+  qEl.textContent = `Вопрос ${current+1}. ${item.q}`;
+  optEl.innerHTML="";
+  item.a.forEach((text,i)=>{
+    const b=document.createElement("button");
+    b.className="btn"; b.textContent=text; b.dataset.idx=i;
+    b.onclick=choose;
+    optEl.appendChild(b);
+  });
+  pb.style.width = (current/questions.length*100)+"%";
+  scoreEl.textContent = `${score} / ${questions.length}`;
+}
+
+function choose(e){
+  const idx=+e.target.dataset.idx;
+  const correct=questions[current].correct;
+  Array.from(optEl.children).forEach(b=>b.onclick=null);
+
+  if(idx===correct){ e.target.classList.add("correct"); score++; }
+  else{
+    e.target.classList.add("wrong");
+    optEl.children[correct].classList.add("correct");
+  }
+
+  scoreEl.textContent = `${score} / ${questions.length}`;
+  setTimeout(()=>{
+    current++;
+    if(current>=questions.length) finish();
+    else render();
+  },700);
+}
+
+function finish(){
+  qr.style.display="none";
+  rs.style.display="flex";
+  rt.textContent=`Результат: ${score} из ${questions.length}`;
+  rtxt.textContent =
+    score===20 ? "Идеально!" :
+    score>=15 ? "Отличный результат!" :
+    score>=10 ? "Хорошо — можно ещё улучшить!" :
+    "Кот Тайсон ждёт, что ты вернёшься 😉";
+  pb.style.width="100%";
+}
+
+document.getElementById('restart').onclick=()=>{
+  current=0; score=0;
+  rs.style.display="none";
+  qr.style.display="block";
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
